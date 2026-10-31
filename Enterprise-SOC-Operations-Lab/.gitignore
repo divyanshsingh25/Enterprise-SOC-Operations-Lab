@@ -1,0 +1,29 @@
+﻿# Operating System
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python / Automation
+__pycache__/
+*.py[cod]
+*.class
+*.env
+venv/
+.venv/
+env/
+
+# Logs and Temp
+*.log
+*.tmp
+
+# Large Packet Captures / Virtual Disks (avoid accidental git bloat)
+*.pcapng
+*.iso
+*.vmdk
+*.ova
