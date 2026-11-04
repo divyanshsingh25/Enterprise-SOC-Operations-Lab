@@ -1,0 +1,38 @@
+/*
+================================================================================
+Rule ID:          DET-ENDP-001
+Rule Name:        Encoded PowerShell Execution
+MITRE ATT&CK:     T1059.001 (Command and Scripting Interpreter: PowerShell)
+Data Source:      Microsoft Sysmon (Event ID 1 - Process Create)
+Target Index:     sysmon_logs
+Sourcetype:       XmlWinEventLog:Sysmon
+Target Host:      chopper
+Severity:         Medium
+Status:           VALIDATED
+Test Case:        TC-001
+Validated Date:   2026-11-04
+Author:           Divyansh Singh
+================================================================================
+Description:
+Detects powershell.exe executing with Base64-encoded command arguments 
+(-EncodedCommand, -enc, -e, etc.) commonly used by adversaries to obfuscate 
+command execution and bypass simple string inspection.
+================================================================================
+*/
+
+-- Operational Query (Validated with XML Extraction in Lab)
+index=sysmon_logs "EncodedCommand"
+| rex field=_raw "<EventID>(?<EventCode>\d+)</EventID>"
+| rex field=_raw "<Data Name='Image'>(?<Image>[^<]+)</Data>"
+| rex field=_raw "<Data Name='CommandLine'>(?<CommandLine>[^<]+)</Data>"
+| rex field=_raw "<Data Name='ParentImage'>(?<ParentImage>[^<]+)</Data>"
+| rex field=_raw "<Data Name='User'>(?<User>[^<]+)</Data>"
+| table _time, host, EventCode, User, Image, CommandLine, ParentImage
+
+-- Optimized Production Detection (CIM Compliant / Case-Insensitive Flag Parsing)
+/*
+index=sysmon_logs EventCode=1 (Image="*\\powershell.exe" OR OriginalFileName="PowerShell.EXE")
+| rex field=_raw "<Data Name='CommandLine'>(?<CommandLine>[^<]+)</Data>"
+| regex CommandLine="(?i)-(?:e|en|enc|encodedcommand)\s+(?<EncodedPayload>[A-Za-z0-9+/=]{8,})"
+| table _time, host, User, CommandLine, EncodedPayload, ParentImage
+*/
